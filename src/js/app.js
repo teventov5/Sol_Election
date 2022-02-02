@@ -52,27 +52,52 @@ App = {
     App.contracts.Election.deployed().then(function(instance) {
       electionInstance = instance;
       return electionInstance.totalNomineesCount();
-    }).then(function(candidatesCount) {
-      var candidatesResults = $("#candidatesResults");
-      candidatesResults.empty();
+    }).then(function(nomineesCount) {
+      var nomineesResult = $("#nomineesResult");
+      nomineesResult.empty();
 
-      for (var i = 1; i <= candidatesCount; i++) {
-        electionInstance.totalNominees(i).then(function(candidate) {
-          var id = candidate[0];
-          var voteCount = candidate[1];
-          var name = candidate[2];
+      var nomineesSelect = $('#nomineesSelect');
+      nomineesSelect.empty();
+
+      for (var i = 1; i <= nomineesCount; i++) {
+        electionInstance.totalNominees(i).then(function(nominee) {
+          var id = nominee[0];
+          var voteCount = nominee[1];
+          var name = nominee[2];
 
 
-          // Render candidate Result
-          var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
-          candidatesResults.append(candidateTemplate);
+          // Render nominee Result
+          var nomineeTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + voteCount + "</td></tr>"
+          nomineesResult.append(nomineeTemplate);
+
+          var nomineeOption = "<option value='" + id + "' >" + name + "</ option>"
+          nomineesSelect.append(nomineeOption)
+
         });
       }
-
+      return electionInstance.alreadyVoted(App.account);
+    }).then(function(hasVoted){
+      if(hasVoted){
+        $('form').hide();
+      }
       loader.hide();
       content.show();
+
     }).catch(function(error) {
       console.warn(error);
+    });
+  },
+
+  castVote: function(){
+    var nomineeId = $('#nomineesSelect').val();
+    App.contracts.Election.deployed().then(function(instance){
+      return instance.vote(nomineeId, {from: App.account});
+    }).then(function(result){
+
+      $("#content").hide();
+      $("#loader").show();
+    }).catch(function(err){
+      console.error(err);
     });
   }
 };
@@ -81,4 +106,7 @@ $(function() {
   $(window).load(function() {
     App.init();
   });
+
+
+
 });
