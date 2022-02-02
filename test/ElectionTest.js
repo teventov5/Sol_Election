@@ -30,13 +30,20 @@ contract ("Election",function(accounts){
   });
 
 
-  it("assertion that a nominee can vote", function(){
+  it("assertion that a vote can be made", function(){
     return ElectionContract.deployed().then(function(instance){
       electionInstance=instance;//instantiating the contract
       testNomineeId=1;//gonna vote for nominee number 1
       return electionInstance.vote(testNomineeId, {from: accounts[0]});//from the first address
     }).then(function(recipt){//save the recipt after the vote
-      return electionInstance.alreadyVoted(accounts[0]);//get the voter status from the stored mapping
+      assert.equal(recipt.logs.length, 1, "an event was successfully triggered");
+      assert.equal(recipt.logs[0].event, "votingEvent", "The event type is correct!");
+      assert.equal(recipt.logs[0].args._nomineeId.toNumber(),testNomineeId, "The nominee Id has the correct value");
+
+      return electionInstance.alreadyVoted(accounts[0]);
+
+
+      //get the voter status from the stored mapping
     }).then(function(voted){//store it in a boolean variable named voted
       assert(voted, "the voter was marked as voted");//assertion that voted==true
       return electionInstance.totalNominees(testNomineeId);//get the nominee with the proper id from mapping

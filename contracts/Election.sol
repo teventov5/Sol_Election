@@ -17,6 +17,10 @@ contract Election {
     string nominee1="Tom";
     string nominee2="Mishael";
 
+    event votingEvent(
+      uint indexed _nomineeId
+      );
+
     // Constructor will add two nominees the take part in the election
     constructor () public {
       addNominee(nominee1);
@@ -42,6 +46,8 @@ contract Election {
       alreadyVoted[msg.sender]=true;
       //we will increase nominee votes by 1
       totalNominees[_nomineeId].voteCount++;
+
+      emit votingEvent(_nomineeId);
 
 
 
